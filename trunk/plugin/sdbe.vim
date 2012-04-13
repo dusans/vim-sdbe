@@ -11,13 +11,14 @@ if ! has('python') || v:version < 703
 endif
 
 " load plugin just once
-if &cp || exists("g:loaded_sdbe")
+if &cp || exists("g:sdbe_loaded")
     finish
 endif
-let g:loaded_sdbe = 1
+let g:sdbe_loaded= 1
 
 " Public interface. {{{
 fun! s:SdbeStart()
+    let g:csv_delim='×'
 python << EOF
 import vim, os, sys
 
@@ -31,12 +32,17 @@ for p in vim.eval("&runtimepath").split(','):
 from sdbe import Sdbe
 SDBE = Sdbe()
 EOF
+
+    let g:sdbe_started = 1
 endfun
 
 fun! s:ExecuteSql()
-    echo("SdbeExecuteSql started.")
-    python SDBE.connection.executesql('SELECT * FROM RSS')
-    echo("SdbeExecuteSql executed.")
+    if !exists("g:sdbe_started")
+        call s:SdbeStart()
+    endif
+    "echo("SdbeExecuteSql started.")
+    python SDBE.connection.executesql('SELECT RSS_ID, LINK, DATE_CREATED FROM RSS')
+    "echo("SdbeExecuteSql executed.")
 endfun
 
 " Expose the functions publicly.
