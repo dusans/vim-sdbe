@@ -26,6 +26,55 @@ def echoe(message):
 	for m in message.split(u'\n'):
 		vim.command((u':echoerr "%s"' % m).encode(u'utf-8'))
 
+def get_bufnumber(bufname):
+	"""
+	Return the number of the buffer for the given bufname if it exist;
+	else None.
+	"""
+	for b in vim.buffers:
+		if b.name == bufname:
+			return int(b.number)
+
+
+def get_bufname(bufnr):
+	"""
+	Return the name of the buffer for the given bufnr if it exist; else None.
+	"""
+	for b in vim.buffers:
+		if b.number == bufnr:
+			return b.name
+
+def get_user_input(message):
+	u"""Print the message and take input from the user.
+	Return the input or None if there is no input.
+	"""
+	vim.command(u'call inputsave()'.encode(u'utf-8'))
+	vim.command((u"let user_input = input('" + message + u": ')")
+			.encode(u'utf-8'))
+	vim.command(u'call inputrestore()'.encode(u'utf-8'))
+	try:
+		return vim.eval(u'user_input'.encode(u'utf-8')).decode(u'utf-8')
+	except:
+		return None
+
+def insert_at_cursor(text, move=True, start_insertmode=False):
+	u"""Insert text at the position of the cursor.
+
+	If move==True move the cursor with the inserted text.
+	"""
+	d = ORGMODE.get_document(allow_dirty=True)
+	line, col = vim.current.window.cursor
+	_text = d._content[line - 1]
+	d._content[line - 1] = _text[:col + 1] + text + _text[col + 1:]
+	if move:
+		vim.current.window.cursor = (line, col + len(text))
+	if start_insertmode:
+		vim.command(u'startinsert'.encode(u'utf-8'))
+
+# -----------------------------------------
+# sdbe code...
+# -----------------------------------------
+
 class Sdbe:
     def __init__(self):
         self.connections = {}
